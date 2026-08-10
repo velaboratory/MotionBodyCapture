@@ -73,3 +73,9 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# mocap_bridge: local venv and generated per-session output (video + glb)
+/tools/mocap_bridge/.venv/
+/tools/mocap_bridge/__pycache__/
+mocap_export/
+*_mocap_export/
