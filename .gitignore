@@ -79,3 +79,7 @@ crashlytics-build.properties
 /tools/mocap_bridge/__pycache__/
 mocap_export/
 *_mocap_export/
+
+# Editor verification screenshots (manage_camera debug captures)
+/Assets/Screenshots/
+/Assets/Screenshots.meta
