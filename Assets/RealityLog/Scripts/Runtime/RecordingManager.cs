@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using RealityLog.Camera;
 using RealityLog.Common;
-using RealityLog.Depth;
 using RealityLog.OVR;
 
 namespace RealityLog
@@ -17,9 +16,6 @@ namespace RealityLog
     public class RecordingManager : MonoBehaviour
     {
         [Header("Recording Components")]
-        [Tooltip("Manages depth map export")]
-        [SerializeField] private DepthMapExporter depthMapExporter = default!;
-        
         [Tooltip("Manages camera image capture (left, right, etc.)")]
         [SerializeField] private ImageReaderSurfaceProvider[] cameraProviders = default!;
         
@@ -67,7 +63,6 @@ namespace RealityLog
             {
                 var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
                 currentSessionDirectory = timestamp;
-                depthMapExporter.DirectoryName = timestamp;
                 foreach (var provider in cameraProviders)
                 {
                     provider.DataDirectoryName = timestamp;
@@ -79,7 +74,7 @@ namespace RealityLog
             }
             else
             {
-                currentSessionDirectory = depthMapExporter.DirectoryName;
+                currentSessionDirectory = poseLoggers[0].DirectoryName;
             }
 
             Debug.Log($"[{Constants.LOG_TAG}] RecordingManager: Starting recording session '{currentSessionDirectory}'");
@@ -92,15 +87,14 @@ namespace RealityLog
             }
 
             // Step 2: Setup file writers and directories
-            // (Depth and camera systems are already initialized from app start)
-            depthMapExporter.StartExport();
+            // (Camera system is already initialized from app start)
             foreach (var logger in poseLoggers)
             {
                 logger.StartLogging();
             }
-            
-            // Optional: Reset camera base time to sync with depth timestamps
-            // Currently commented out as both use system monotonic clock
+
+            // Optional: Reset camera base time
+            // Currently commented out as it uses the system monotonic clock
             // Uncomment if timestamp alignment issues occur
             // foreach (var provider in cameraProviders)
             // {
@@ -137,7 +131,6 @@ namespace RealityLog
             captureTimer.StopCapture();
 
             // Step 2: Close file writers and cleanup
-            depthMapExporter.StopExport();
             foreach (var logger in poseLoggers)
             {
                 logger.StopLogging();
@@ -173,9 +166,6 @@ namespace RealityLog
         private void OnValidate()
         {
             // Validate required references in editor
-            if (depthMapExporter == null)
-                Debug.LogWarning($"[{Constants.LOG_TAG}] RecordingManager: Missing DepthMapExporter reference!");
-            
             if (cameraProviders == null || cameraProviders.Length == 0)
                 Debug.LogWarning($"[{Constants.LOG_TAG}] RecordingManager: No ImageReaderSurfaceProviders assigned! Add left and right camera providers.");
             
