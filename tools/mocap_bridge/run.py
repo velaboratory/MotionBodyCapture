@@ -17,13 +17,17 @@ import tempfile
 import zipfile
 from pathlib import Path
 
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+
 import requests
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from adb_push import push_files  # noqa: E402
 from mocap_client import TRACKER_DEFAULTS, export_track, run_tracking, upload_video  # noqa: E402
-from yuv_to_video import convert_session_to_video  # noqa: E402
+from yuv_to_video import convert_session_to_video, load_camera_intrinsics, session_capture_fps  # noqa: E402
 
 
 def resolve_session_dir(session_path: Path, extract_root: Path) -> Path:
@@ -89,6 +93,29 @@ def build_arg_parser() -> argparse.ArgumentParser:
     gpu.add_argument("--use-gpu", dest="use_gpu", action="store_true", default=TRACKER_DEFAULTS["use_gpu"])
     gpu.add_argument("--no-gpu", dest="use_gpu", action="store_false")
 
+    parser.add_argument(
+        "--no-intrinsics", dest="use_intrinsics", action="store_false",
+        help="Estimate the camera field of view per frame instead of using the intrinsics the headset recorded",
+    )
+    parser.add_argument(
+        "--no-person-box", dest="use_person_box", action="store_false",
+        help="Give the model the whole frame instead of a crop around the subject",
+    )
+    parser.add_argument(
+        "--smooth", type=float, default=1.0,
+        help="Temporal smoothing strength for the exported animation (1 = default, 2 = smoother, 0 = raw)",
+    )
+
+    fp16 = parser.add_mutually_exclusive_group()
+    fp16.add_argument(
+        "--use-fp16",
+        dest="use_fp16",
+        action="store_true",
+        default=TRACKER_DEFAULTS["use_fp16"],
+        help="Run inference under fp16 autocast -- roughly halves VRAM use, useful on smaller GPUs (e.g. <12GB)",
+    )
+    fp16.add_argument("--no-fp16", dest="use_fp16", action="store_false")
+
     face = parser.add_mutually_exclusive_group()
     face.add_argument(
         "--face-recognition",
@@ -112,6 +139,15 @@ def main(argv: list[str] | None = None) -> int:
 
         video_path = output_dir / "capture.mp4"
         convert_session_to_video(session_dir, args.camera, video_path)
+        export_fps = session_capture_fps(session_dir, args.camera) / max(1, args.skip_frames)
+        print(f"[run] Exporting animation at {export_fps:.2f} fps (real capture rate / skip_frames)")
+
+        intrinsics = load_camera_intrinsics(session_dir, args.camera) if args.use_intrinsics else None
+        if intrinsics:
+            print(f"[run] Using the headset's recorded camera intrinsics (fx={intrinsics['fx']:.1f}, {intrinsics['width']}px wide)")
+        elif args.use_intrinsics:
+            print("[run] No usable camera intrinsics in this session; the backend will estimate the field of view")
+        print(f"[run] Subject crop: {'on' if args.use_person_box else 'off'}")
 
         print(f"[run] Uploading {video_path.name} to {args.backend_url} ...")
         server_video_path = upload_video(args.backend_url, video_path)
@@ -125,7 +161,10 @@ def main(argv: list[str] | None = None) -> int:
             "resize_factor": args.resize_factor,
             "max_age": args.max_age,
             "use_gpu": args.use_gpu,
+            "use_fp16": args.use_fp16,
             "enable_face_recognition": args.enable_face_recognition,
+            "camera_intrinsics": intrinsics,
+            "use_person_box": args.use_person_box,
         }
 
         print("[run] Running tracker on backend ...")
@@ -136,7 +175,10 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         print(f"[run] Detected {len(track_ids)} track(s): {sorted(track_ids)}")
-        glb_paths = [export_track(args.backend_url, track_id, output_dir) for track_id in sorted(track_ids)]
+        glb_paths = [
+            export_track(args.backend_url, track_id, output_dir, fps=export_fps, smooth=args.smooth)
+            for track_id in sorted(track_ids)
+        ]
 
     push_warnings: list[str] = []
     if args.push_to_quest:

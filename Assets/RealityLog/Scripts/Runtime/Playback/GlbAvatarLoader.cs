@@ -25,9 +25,20 @@ namespace RealityLog.Playback
         [Tooltip("Height offset from camera (in meters, positive = above eye level)")]
         [SerializeField] private float heightOffset = -1f;
 
+        [Tooltip("Playback speed multiplier (1 = the speed baked into the .glb)")]
+        [SerializeField] private float playbackSpeed = 1f;
+
         private GameObject? currentAvatar;
+        private Animation? avatarAnimation;
+        private bool isPaused;
 
         public bool IsLoading { get; private set; }
+
+        /// <summary>True while a loaded animation is paused.</summary>
+        public bool IsPaused => isPaused;
+
+        /// <summary>True when an avatar with an animation clip is loaded.</summary>
+        public bool HasAnimation => avatarAnimation != null;
 
         /// <summary>Fired with the file path when loading/instantiating fails.</summary>
         public event Action<string>? OnLoadFailed;
@@ -108,6 +119,49 @@ namespace RealityLog.Playback
             }
             animation.clip = clips[0];
             animation.Play(clips[0].name);
+
+            avatarAnimation = animation;
+            isPaused = false;
+            ApplySpeed();
+        }
+
+        /// <summary>
+        /// Pauses the animation if it is playing, resumes it if it is paused.
+        /// </summary>
+        public void TogglePlayPause()
+        {
+            SetPaused(!isPaused);
+        }
+
+        public void SetPaused(bool paused)
+        {
+            if (avatarAnimation == null) return;
+            isPaused = paused;
+            ApplySpeed();
+            Debug.Log($"[{Constants.LOG_TAG}] GlbAvatarLoader: {(isPaused ? "Paused" : "Playing")}");
+        }
+
+        /// <summary>
+        /// Jumps back to the first frame. Stays paused if it was paused.
+        /// </summary>
+        public void Restart()
+        {
+            if (avatarAnimation == null) return;
+            foreach (AnimationState state in avatarAnimation)
+            {
+                state.time = 0f;
+            }
+            Debug.Log($"[{Constants.LOG_TAG}] GlbAvatarLoader: Restarted");
+        }
+
+        private void ApplySpeed()
+        {
+            if (avatarAnimation == null) return;
+            float speed = isPaused ? 0f : playbackSpeed;
+            foreach (AnimationState state in avatarAnimation)
+            {
+                state.speed = speed;
+            }
         }
 
         /// <summary>
@@ -120,6 +174,8 @@ namespace RealityLog.Playback
                 Destroy(currentAvatar);
                 currentAvatar = null;
             }
+            avatarAnimation = null;
+            isPaused = false;
         }
 
         /// <summary>

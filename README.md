@@ -45,7 +45,7 @@ This includes:
 * Captures **YUV passthrough images** from **both left and right cameras**
 * Logs **Camera2 API characteristics** and image format information
 * Saves **depth maps** and **depth descriptors** from both cameras
-* **Synchronized capture** with configurable frame rate for depth and camera images (default: 3 FPS)
+* **Synchronized capture** with configurable frame rate for depth and camera images (default: 30 FPS; the camera itself tops out around there, so expect a bit less in practice)
 * **Perfect timestamp alignment** between camera images and depth maps
 * **Real-time Depth Point Cloud Visualization**:
   * Visualizes depth coverage using a particle system.

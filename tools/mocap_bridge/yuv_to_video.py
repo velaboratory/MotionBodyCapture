@@ -9,7 +9,6 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
-from statistics import median
 
 import cv2
 import numpy as np
@@ -69,16 +68,20 @@ def list_frames(session_dir: Path, camera: str) -> list[tuple[int, Path]]:
 
 def estimate_fps(timestamps_ms: list[int], default: float = 3.0) -> float:
     """Derive playback fps from actual capture timestamps (capture runs at a
-    configurable, typically low, fixed rate -- see OpenQuestCapture's README)."""
+    configurable fixed rate -- see OpenQuestCapture's README).
+
+    Uses total span, not the median gap: frames are captured on rendered-frame
+    boundaries, so at high rates the gaps come in multiples of the display
+    refresh (14/28/42 ms at 72 Hz). The median of those over-reports the rate
+    (35.7 fps measured on a clip that really ran at 30.0), which would play the
+    exported animation ~19% too fast.
+    """
     if len(timestamps_ms) < 2:
         return default
-    deltas = [b - a for a, b in zip(timestamps_ms, timestamps_ms[1:]) if b > a]
-    if not deltas:
+    span_ms = timestamps_ms[-1] - timestamps_ms[0]
+    if span_ms <= 0:
         return default
-    delta_ms = median(deltas)
-    if delta_ms <= 0:
-        return default
-    return 1000.0 / delta_ms
+    return 1000.0 * (len(timestamps_ms) - 1) / span_ms
 
 
 def convert_session_to_video(session_dir: Path, camera: str, output_path: Path) -> Path:
@@ -108,3 +111,36 @@ def convert_session_to_video(session_dir: Path, camera: str, output_path: Path) 
 
     print(f"[yuv_to_video] Wrote {len(frames)} frames at {fps:.2f} fps -> {output_path}")
     return output_path
+
+
+CAMERA_CHARACTERISTICS_JSON = {
+    "left": "left_camera_characteristics.json",
+    "right": "right_camera_characteristics.json",
+}
+
+
+def load_camera_intrinsics(session_dir: Path, camera: str) -> dict | None:
+    """The pinhole intrinsics the headset recorded for this camera, in pixels of the
+    full captured frame, or None if the session does not have usable ones."""
+    try:
+        characteristics = json.loads((session_dir / CAMERA_CHARACTERISTICS_JSON[camera]).read_text())
+        fmt = json.loads((session_dir / CAMERA_FORMAT_JSON[camera]).read_text())
+        k = characteristics["intrinsics"]
+        out = {
+            "fx": float(k["fx"]), "fy": float(k["fy"]),
+            "cx": float(k["cx"]), "cy": float(k["cy"]),
+            "width": int(fmt["width"]), "height": int(fmt["height"]),
+        }
+    except (OSError, KeyError, ValueError, TypeError):
+        return None
+    if out["fx"] <= 0 or out["fy"] <= 0 or out["width"] <= 0:
+        return None
+    if characteristics.get("distortion"):
+        print("[yuv_to_video] note: camera reports lens distortion; intrinsics are used as a pinhole model")
+    return out
+
+
+def session_capture_fps(session_dir: Path, camera: str) -> float:
+    """Real capture rate of a session, from its frame timestamps."""
+    frames = list_frames(session_dir, camera)
+    return estimate_fps([ts for ts, _ in frames])

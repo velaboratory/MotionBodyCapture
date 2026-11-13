@@ -95,9 +95,22 @@ def run_tracking(backend_url: str, video_path_on_server: str, overrides: dict[st
     return track_ids
 
 
-def export_track(backend_url: str, track_id: int, output_dir: Path) -> Path:
-    """Download the full-track .glb for one tracked person."""
-    response = requests.get(f"{backend_url.rstrip('/')}/export/{track_id}")
+def export_track(
+    backend_url: str, track_id: int, output_dir: Path, fps: float | None = None, smooth: float | None = None
+) -> Path:
+    """Download the full-track .glb for one tracked person.
+
+    fps is the real rate of the tracked frames. Without it the backend writes
+    the animation at 30 fps, which plays a slow capture many times too fast.
+    smooth scales the backend's temporal smoothing (1 = default, 0 = raw).
+    """
+    params = {}
+    if fps:
+        params["fps"] = fps
+    if smooth is not None:
+        params["smooth"] = smooth
+    params = params or None
+    response = requests.get(f"{backend_url.rstrip('/')}/export/{track_id}", params=params)
     response.raise_for_status()
 
     # On failure the endpoint returns a 200 JSON {"error": ...} body instead of
