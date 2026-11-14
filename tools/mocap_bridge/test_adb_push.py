@@ -22,7 +22,7 @@ class TestPushFile(unittest.TestCase):
         mkdir_cmd, push_cmd = (call.args[0] for call in mock_run.call_args_list)
         self.assertEqual(mkdir_cmd[:3], ["adb", "shell", "mkdir"])
         self.assertIn(
-            "/sdcard/Android/data/com.samusynth.OpenQuestCapture/files/mocap_playback",
+            "/sdcard/Android/data/com.velaboratory.MotionBodyCapture/files/mocap_playback",
             mkdir_cmd,
         )
         self.assertEqual(push_cmd[0], "adb")

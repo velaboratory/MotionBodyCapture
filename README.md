@@ -1,4 +1,6 @@
-# OpenQuestCapture
+# MotionBodyCapture
+
+> Fork of [samuelm2/OpenQuestCapture](https://github.com/samuelm2/OpenQuestCapture), adapted by VE Lab for camera-based dance motion capture and body reconstruction on Meta Quest 3.
 
 [![](https://dcbadge.limes.pink/api/server/y5v3BTXAUd)](https://discord.gg/y5v3BTXAUd)
 
@@ -21,7 +23,7 @@ Huge thanks to the original author for their excellent work in making Quest sens
 
 ## 📖 Overview
 
-`OpenQuestCapture` is a Unity-based data logging and visualization tool designed for the Meta Quest 3. It captures synchronized, high-fidelity real-world data—including headset poses, stereo passthrough images, camera intrinsics, and depth maps—organized into session-based logs.
+`MotionBodyCapture` (based on OpenQuestCapture) is a Unity-based data logging and visualization tool designed for the Meta Quest 3. It captures synchronized, high-fidelity real-world data—including headset poses, stereo passthrough images, camera intrinsics, and depth maps—organized into session-based logs.
 
 Beyond data capture, the app features **real-time depth point cloud visualization**, allowing users to see the captured environment and verify coverage directly within the headset. This ensures high-quality data collection for downstream tasks like 3D reconstruction and SLAM.
 
@@ -58,7 +60,7 @@ This includes:
 2. **!!! IMPORTANT !!! Enable permissions**: **When you first launch the app, make sure to check "Enable Headset Cameras" when the permissions are asked for.**
 3. **Start recording**: Launch the app and press the Menu button on the left controller to start a capture session.
 4. **Stop recording**: To stop, press the left controller's Menu button again.
-5. **Move the data from your Quest to your computer**: The data is stored on the Quest's internal storage. You can move it to your computer using a USB cable by connecting the Quest to your computer and using Windows File Explorer. The data is stored in the `/Quest 3/Internal Shared Storage/data/com.samusynth.OpenQuestCapture/files` directory.
+5. **Move the data from your Quest to your computer**: The data is stored on the Quest's internal storage. You can move it to your computer using a USB cable by connecting the Quest to your computer and using Windows File Explorer. The data is stored in the `/Quest 3/Internal Shared Storage/data/com.velaboratory.MotionBodyCapture/files` directory.
 Or, you can use press the Y button on the left controller to toggle the Recording Menu. Select "Export Data" to export the data to a zip file in the Quest 3 Download folder which can be uploaded to Google Drive or other cloud storage services.
 6. **Reconstruct the scene**: Use the companion project [Meta Quest 3D Reconstruction](https://github.com/samuelm2/quest-3d-reconstruction) to reconstruct a COLMAP sparse point cloud from the captured data. Or, if you prefer a cloud-based, end-to-end solution, you can go to [vid2scene.com/upload/quest](https://vid2scene.com/upload/quest) and upload the Quest raw data zip file to create a 3DGS reconstruction on the cloud.
 
@@ -80,13 +82,13 @@ To ensure the best possible 3D reconstruction results:
 Each time you start recording, a new folder is created under:
 
 ```
-/sdcard/Android/data/com.samusynth.OpenQuestCapture/files
+/sdcard/Android/data/com.velaboratory.MotionBodyCapture/files
 ```
 
 Example structure:
 
 ```
-/sdcard/Android/data/com.samusynth.OpenQuestCapture/files
+/sdcard/Android/data/com.velaboratory.MotionBodyCapture/files
 └── YYYYMMDD_hhmmss/
     ├── hmd_poses.csv
     ├── left_controller_poses.csv

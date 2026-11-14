@@ -1,10 +1,10 @@
 # Mo=Cat Studio bridge
 
-Turns an OpenQuestCapture session into human-mocap `.glb` files by running it
+Turns an MotionBodyCapture session into human-mocap `.glb` files by running it
 through a [Mo=Cat Studio](https://github.com/) backend, in one command instead
 of the manual "unzip → figure out a video → click through the web UI → download
 each track" dance — and pushes the results straight back onto the headset so
-they show up in OpenQuestCapture's own **Playback** tab, in passthrough XR.
+they show up in MotionBodyCapture's own **Playback** tab, in passthrough XR.
 
 This tool doesn't touch Mo=Cat Studio's code at all — it's a plain client of its
 existing `/upload`, `/ws/{client_id}`, and `/export/{track_id}` HTTP/WS API, the
@@ -57,7 +57,7 @@ This will:
    default) into an MP4, using the frames' own timestamps for playback fps.
 2. Upload it to the backend and run the multi-person tracker.
 3. Download one `track_<id>.glb` per detected person.
-4. `adb push` each `.glb` onto the headset, into the folder OpenQuestCapture's
+4. `adb push` each `.glb` onto the headset, into the folder MotionBodyCapture's
    Playback tab scans (`--no-push-to-quest` to skip this).
 
 Outputs land in `<session>/mocap_export/` (or next to the zip, as
@@ -87,6 +87,6 @@ devices`). Non-standard `adb` location? `--adb-path /path/to/adb`.
   it over, not a failed run — every `.glb` is already sitting locally in the
   output dir regardless.
 - On-device destination is
-  `/sdcard/Android/data/com.samusynth.OpenQuestCapture/files/mocap_playback/`,
+  `/sdcard/Android/data/com.velaboratory.MotionBodyCapture/files/mocap_playback/`,
   the same app-private external-storage convention session recordings already
   use (no extra Android permission needed).

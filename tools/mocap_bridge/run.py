@@ -1,4 +1,4 @@
-"""CLI: OpenQuestCapture session -> Mo=Cat Studio mocap .glb files.
+"""CLI: MotionBodyCapture session -> Mo=Cat Studio mocap .glb files.
 
 Usage:
     python tools/mocap_bridge/run.py --session /path/to/session_or_export.zip \\

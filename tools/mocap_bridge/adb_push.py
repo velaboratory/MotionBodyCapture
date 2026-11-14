@@ -1,5 +1,5 @@
 """Push exported .glb files onto a connected Quest headset via adb, into the
-folder OpenQuestCapture's Playback tab scans (Assets/RealityLog/Scripts/Runtime/
+folder MotionBodyCapture's Playback tab scans (Assets/RealityLog/Scripts/Runtime/
 UI/PlaybackFileManager.cs, playbackDirectoryName = "mocap_playback").
 
 Best-effort by design: callers should treat failures here as warnings, not
@@ -11,7 +11,7 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-DEVICE_PLAYBACK_DIR = "/sdcard/Android/data/com.samusynth.OpenQuestCapture/files/mocap_playback"
+DEVICE_PLAYBACK_DIR = "/sdcard/Android/data/com.velaboratory.MotionBodyCapture/files/mocap_playback"
 
 
 class AdbPushError(RuntimeError):
@@ -31,7 +31,7 @@ def push_file(
     serial: str | None = None,
     device_dir: str = DEVICE_PLAYBACK_DIR,
 ) -> None:
-    """adb-push a single file into the OpenQuestCapture app's playback folder on-device."""
+    """adb-push a single file into the MotionBodyCapture app's playback folder on-device."""
     serial_args = ["-s", serial] if serial else []
 
     mkdir_result = _run([adb_path, *serial_args, "shell", "mkdir", "-p", device_dir])

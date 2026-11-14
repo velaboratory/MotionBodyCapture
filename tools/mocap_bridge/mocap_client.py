@@ -33,7 +33,9 @@ TRACKER_DEFAULTS: dict[str, Any] = {
     "resize_factor": 1.0,
     "use_fp16": False,
     "disable_ghost_suppression": False,
-    "enable_face_recognition": True,
+    # Off by default: the IRB protocol states no facial recognition or identity
+    # inference will be performed. Only enable for non-study test footage.
+    "enable_face_recognition": False,
     "embed_retry_interval": 10,
     "embed_max_retries": 3,
     "embed_quality_threshold": 0.4,

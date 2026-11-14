@@ -1,4 +1,4 @@
-"""Convert an OpenQuestCapture session's raw passthrough YUV frames into an MP4.
+"""Convert an MotionBodyCapture session's raw passthrough YUV frames into an MP4.
 
 Reuses the YUV_420_888 -> BGR plane math from the quest-3d-reconstruction
 submodule (scripts/utils/image_utils.py::convert_yuv420_888_to_bgr) instead of
@@ -29,7 +29,7 @@ def load_format_info(session_dir: Path, camera: str) -> ImageFormatInfo:
     format_json_path = session_dir / CAMERA_FORMAT_JSON[camera]
     if not format_json_path.exists():
         raise FileNotFoundError(
-            f"Missing {format_json_path.name} in {session_dir} -- is this an OpenQuestCapture session folder?"
+            f"Missing {format_json_path.name} in {session_dir} -- is this an MotionBodyCapture session folder?"
         )
     with open(format_json_path) as f:
         info = json.load(f)
@@ -58,7 +58,7 @@ def load_format_info(session_dir: Path, camera: str) -> ImageFormatInfo:
 def list_frames(session_dir: Path, camera: str) -> list[tuple[int, Path]]:
     raw_dir = session_dir / CAMERA_RAW_DIR[camera]
     if not raw_dir.is_dir():
-        raise FileNotFoundError(f"Missing {raw_dir} -- is this an OpenQuestCapture session folder?")
+        raise FileNotFoundError(f"Missing {raw_dir} -- is this an MotionBodyCapture session folder?")
     frames = [(int(p.stem), p) for p in raw_dir.glob("*.yuv")]
     frames.sort(key=lambda item: item[0])
     if not frames:
@@ -68,7 +68,7 @@ def list_frames(session_dir: Path, camera: str) -> list[tuple[int, Path]]:
 
 def estimate_fps(timestamps_ms: list[int], default: float = 3.0) -> float:
     """Derive playback fps from actual capture timestamps (capture runs at a
-    configurable fixed rate -- see OpenQuestCapture's README).
+    configurable fixed rate -- see MotionBodyCapture's README).
 
     Uses total span, not the median gap: frames are captured on rendered-frame
     boundaries, so at high rates the gaps come in multiples of the display

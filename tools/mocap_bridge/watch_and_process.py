@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Watches a USB-connected Quest headset for finished OpenQuestCapture recording
+Watches a USB-connected Quest headset for finished MotionBodyCapture recording
 sessions and automatically runs each one through the Mo=Cat Studio bridge
 (tools/mocap_bridge/run.py), so the only manual step is record -> stop on the
 headset -- results land back in the Playback tab on their own.
@@ -37,7 +37,7 @@ import tempfile
 import time
 from pathlib import Path
 
-APP_PACKAGE = "com.samusynth.OpenQuestCapture"
+APP_PACKAGE = "com.velaboratory.MotionBodyCapture"
 DEVICE_FILES_ROOT = f"/sdcard/Android/data/{APP_PACKAGE}/files"
 SESSION_DIR_RE = re.compile(r"^\d{8}_\d{6}$")  # matches RecordingManager's yyyyMMdd_HHmmss
 KNOWN_NON_SESSION_DIRS = {"mocap_playback", "Downloads"}
